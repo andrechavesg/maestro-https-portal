@@ -1,0 +1,42 @@
+version: '3.5'
+services:
+  php-server:
+#    Definido a versão da imagem do PHP
+    image: "php:latest"
+#   'Apontando' a pasta atual para o diretório /var/www/ dentro do container
+    volumes:
+      - "./:/var/www/"
+#    Definido a pasta raiz do container como /var/www/
+    working_dir: /var/www/
+#   Subindo o servidor do PHP na porta 80
+    command: bash -c "php -S 0.0.0.0:80 -t /var/www/"
+#    Apontando a porta 80 do container para a porta 8080 da máquina
+    ports:
+      - '8080:80'
+    networks:
+      - network
+  https-portal:
+#   Definindo a versão do https-portal
+    image: steveltn/https-portal:1
+#   'Apontando' a pasta atual para o diretório /var/www/ dentro do container
+    volumes:
+      - "./certificados/:/var/lib/https-portal"
+#   Apontando as portas 80 e 443 do container para as portas 80 e 443 da máquina
+    ports:
+      - '80:80'
+      - '443:443'
+#   Relacionando o container do https-portal com o servidor
+    links:
+      - php-server
+    restart: always
+#   Configurações de ambiente
+    environment:
+      DOMAINS: 'teste.local -> http://php-server:80'
+#     Definindo o ambiente como local
+      STAGE: 'local'
+#     Impedindo a renovação ao subir o container
+      FORCE_RENEW: 'false'
+    networks:
+      - network
+networks:
+  network:
